@@ -331,16 +331,16 @@ CancelNaming:
     return
 
 ; Show remove menu
-ShowRemoveMenu:
+ShowRemoveMenu() {
     ; Clear listbox
     GuiControl, RemoveApp:, AppToRemove, |
         ; Populate listbox with tracked apps
         for _ExeName, AppData in AppList {
             GuiControl, RemoveApp:, AppToRemove, % AppData.Name
-            }
-            Gui, Menu: Hide
+        }
+        Gui, Menu: Hide
     Gui, RemoveApp: Show, w220 h220
-    return
+}
 
 ; Remove selected app
 RemoveSelectedApp:
@@ -359,8 +359,7 @@ RemoveSelectedApp:
         SaveData()
     }
 
-    ; Gui, RemoveApp: Hide
-    ; Gui, Menu: Show
+    ShowRemoveMenu()
     return
 
 ; Cancel removal
