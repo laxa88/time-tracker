@@ -5,6 +5,8 @@ DetectHiddenWindows, On
 
 ; Initialize global variables
 global AppTimeout := 5
+global AppIdle := 0
+global IsIdle := false
 global AppList := {}
 global CurrentTimer := "--:--:--"
 global ActiveExe := ""
@@ -58,6 +60,7 @@ Gui, TimeoutApp: Add, Button, gTimeoutSet x180 y5 w40 h25, Set
 ; Start the timer loop
 SetTimer, CheckActiveWindow, 500
 SetTimer, UpdateTimer, 1000
+SetTimer, CheckMouseMove, 100
 
 ResetLabels()
 UpdateGui()
@@ -127,10 +130,8 @@ CheckActiveWindow:
         CurrentTimer := FormatTime(AppList[CurrentExeName].Time)
         TimerRunning := true
 
-        if (!IsMinimized) {
+        if (!IsIdle && !IsMinimized) {
             Gui, Main: Color, Green
-        } else {
-            Gui, Main: Color, Red
         }
     }
 
@@ -141,7 +142,7 @@ CheckActiveWindow:
 
 ; Update the timer
 UpdateTimer:
-    if (TimerRunning && ActiveExe != "") {
+    if (!IsIdle && TimerRunning && ActiveExe != "") {
         ; Make sure the app is still active and not minimized
         WinGet, CurrentActiveID, ID, A
         WinGet, MinMax, MinMax, ahk_id %CurrentActiveID%
@@ -152,12 +153,31 @@ UpdateTimer:
         if (CurrentExeName = ActiveExe && !IsMinimized) {
             ; Increment timer for active app
             AppList[ActiveExe].Time += 1
+            AppIdle += 1
             CurrentTimer := FormatTime(AppList[ActiveExe].Time)
             UpdateGui()
+
+            if (AppIdle > AppTimeout) {
+                IsIdle := true
+                Gui, Main: Color, Silver
+                Gui, Main: Show, NoActivate
+            }
         } else {
             ; The window is no longer active, pause the timer
             TimerRunning := false
         }
+    }
+    return
+
+CheckMouseMove:
+    MouseGetPos, xNow, yNow
+    if (xNow != xLast || yNow != yLast) {
+        ; ToolTip, Mouse moved to: %xNow%, %yNow% ; for debugging
+        xLast := xNow
+        yLast := yNow
+
+        AppIdle := 0
+        IsIdle := false
     }
     return
 
