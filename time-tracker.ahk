@@ -5,9 +5,8 @@ DetectHiddenWindows, On
 
 ; Initialize global variables
 global AppList := {}
-; global CurrentApp := "Not tracked"
 global CurrentTimer := "--:--:--"
-global ActiveAppID := ""
+global ActiveExe := ""
 global TimerRunning := false
 global DataFile := A_ScriptDir . "\TrackerData.ini"
 
@@ -16,7 +15,6 @@ LoadSavedData()
 
 ; Create main GUI
 Gui, Main: New, +AlwaysOnTop + ToolWindow + Resize, Tracker
-; Gui, Main: Add, Text, vAppNameLabel w280 h20, App: %CurrentApp%
 Gui, Main: Font, s18, Consolas
 Gui, Main: Add, Text, vTimerLabel x5 y5 w120 h30, Time: %CurrentTimer%
 Gui, Main: Font, s10
@@ -64,11 +62,11 @@ LoadSavedData() {
         IniRead, AppCount, %DataFile%, General, AppCount, 0
         if (AppCount > 0) {
             loop, %AppCount% {
-                IniRead, AppID, %DataFile%, Apps, App%A_Index%_ID
+                IniRead, AppExe, %DataFile%, Apps, App%A_Index%_Exe
                 IniRead, AppName, %DataFile%, Apps, App%A_Index%_Name
                 IniRead, AppTime, %DataFile%, Apps, App%A_Index%_Time, 0
 
-                AppList[AppID] := { Name: AppName, Time: AppTime }
+                AppList[AppExe] := { Name: AppName, Time: AppTime }
             }
         }
     }
@@ -79,9 +77,9 @@ SaveData() {
     FileDelete, %DataFile%
 
     AppCount := 0
-    for AppID, AppData in AppList {
+    for AppExe, AppData in AppList {
         AppCount++
-        IniWrite, % AppID, %DataFile%, Apps, App%AppCount%_ID
+        IniWrite, % AppExe, %DataFile%, Apps, App%AppCount%_Exe
         IniWrite, % AppData.Name, %DataFile%, Apps, App%AppCount%_Name
         IniWrite, % AppData.Time, %DataFile%, Apps, App%AppCount%_Time
     }
@@ -92,7 +90,7 @@ SaveData() {
 ; Check which window is active
 CheckActiveWindow:
     WinGet, CurrentWinID, ID, A
-    WinGetTitle, CurrentWinTitle, ahk_id %CurrentWinID%
+    WinGet, CurrentExeName, ProcessName, ahk_id %CurrentWinID%
 
     ; Skip if it's the tracker itself or its submenus
     WinGet, TrackerID, ID, Tracker
@@ -112,11 +110,10 @@ CheckActiveWindow:
     IsMinimized := (MinMax = -1)
 
     ; Update the active app
-    if (AppList.HasKey(CurrentWinID)) {
-        Gui, Main: Show, NoActivate, %CurrentWinTitle%
-        ActiveAppID := CurrentWinID
-        ; CurrentApp := AppList[CurrentWinID].Name
-        CurrentTimer := FormatTime(AppList[CurrentWinID].Time)
+    if (AppList.HasKey(CurrentExeName)) {
+        Gui, Main: Show, NoActivate, %CurrentExeName%
+        ActiveExe := CurrentExeName
+        CurrentTimer := FormatTime(AppList[CurrentExeName].Time)
         TimerRunning := true
 
         if (!IsMinimized) {
@@ -133,16 +130,18 @@ CheckActiveWindow:
 
 ; Update the timer
 UpdateTimer:
-    if (TimerRunning && ActiveAppID != "") {
+    if (TimerRunning && ActiveExe != "") {
         ; Make sure the app is still active and not minimized
         WinGet, CurrentActiveID, ID, A
         WinGet, MinMax, MinMax, ahk_id %CurrentActiveID%
+        WinGet, CurrentExeName, ProcessName, ahk_id %CurrentActiveID%
+
         IsMinimized := (MinMax = -1)
 
-        if (CurrentActiveID = ActiveAppID && !IsMinimized) {
+        if (CurrentExeName = ActiveExe && !IsMinimized) {
             ; Increment timer for active app
-            AppList[ActiveAppID].Time += 1
-            CurrentTimer := FormatTime(AppList[ActiveAppID].Time)
+            AppList[ActiveExe].Time += 1
+            CurrentTimer := FormatTime(AppList[ActiveExe].Time)
             UpdateGui()
         } else {
             ; The window is no longer active, pause the timer
@@ -162,14 +161,12 @@ FormatTime(Seconds) {
 ResetLabels() {
     Gui, Main: Color, Silver
     Gui, Main: Show, NoActivate
-    ActiveAppID := ""
-    ; CurrentApp := "[untracked] " . CurrentWinTitle
+    ActiveExe := ""
     CurrentTimer := "--:--:--"
     TimerRunning := false
 }
 
 UpdateGui() {
-    ; GuiControl, Main:, AppNameLabel, App: %CurrentApp%
     GuiControl, Main:, TimerLabel, %CurrentTimer%
 }
 
@@ -180,9 +177,9 @@ ShowMenu:
     return
 
 ResetTimer() {
-    if (AppList.HasKey(ActiveAppID)) {
-        AppList[ActiveAppID].Time := 0
-        CurrentTimer := FormatTime(AppList[CurrentWinID].Time)
+    if (AppList.HasKey(ActiveExe)) {
+        AppList[ActiveExe].Time := 0
+        CurrentTimer := FormatTime(AppList[ActiveExe].Time)
         UpdateGui()
     }
 }
@@ -207,16 +204,17 @@ WaitForWindowSelection:
     if GetKeyState("LButton", "P") {
         ; Store current active window
         WinGet, PreviousActiveWindow, ID, A
+        WinGet, PreviousExeName, ProcessName, ahk_id %PreviousActiveWindow%
 
         ; Wait for new window to activate after click
         Sleep, 300  ; Short delay to allow window activation
 
         ; Get newly activated window
         WinGet, SelectedWindowID, ID, A
-        WinGetTitle, WindowTitle, ahk_id %SelectedWindowID%
+        WinGet, SelectedExeName, ProcessName, ahk_id %SelectedWindowID%
 
         ; If active window changed and is not one of our GUIs
-        if (SelectedWindowID != PreviousActiveWindow) {
+        if (SelectedExeName != PreviousExeName) {
             ; Skip if it's one of our GUIs
             WinGet, TrackerID, ID, Tracker
             WinGet, MenuID, ID, Tracker Menu
@@ -230,7 +228,7 @@ WaitForWindowSelection:
                 Gui, SelectApp: Hide
 
                 ; Show input dialog for app name
-                GuiControl, NameApp:, AppNameInput, %WindowTitle%
+                GuiControl, NameApp:, AppNameInput, %SelectedExeName%
                 Gui, NameApp: Show, w220 h120
             }
         }
@@ -250,7 +248,7 @@ SaveAppName:
     Gui, NameApp: Hide
 
     ; Add app to tracking list
-    AppList[SelectedWindowID] := { Name: AppNameInput, Time: 0 }
+    AppList[SelectedExeName] := { Name: AppNameInput, Time: 0 }
 
     ; Save data
     SaveData()
@@ -270,7 +268,7 @@ ShowRemoveMenu:
     ; Clear listbox
     GuiControl, RemoveApp:, AppToRemove, |
         ; Populate listbox with tracked apps
-        for AppID, AppData in AppList {
+        for _ExeName, AppData in AppList {
             GuiControl, RemoveApp:, AppToRemove, % AppData.Name
             }
             Gui, Menu: Hide
@@ -283,9 +281,9 @@ RemoveSelectedApp:
 
     ; Find app ID by name
     if (AppToRemove) {
-        for AppID, AppData in AppList {
+        for ExeName, AppData in AppList {
             if (AppData.Name = AppToRemove) {
-                AppList.Delete(AppID)
+                AppList.Delete(ExeName)
                 break
             }
         }
