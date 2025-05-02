@@ -28,6 +28,7 @@ Gui, Main: Show, w260 h40 NoActivate
 ; Create menu GUI - added AlwaysOnTop flag
 Gui, Menu: New, +AlwaysOnTop + ToolWindow + Owner, Tracker Menu
 Gui, Menu: Add, Button, gResetTimer w150 h30, Reset current timer
+Gui, Menu: Add, Button, gResetAllTimers w150 h30, Reset ALL timers
 Gui, Menu: Add, Button, gTrackNewApp w150 h30, Track new app
 Gui, Menu: Add, Button, gShowRemoveMenu w150 h30, Remove tracked app
 Gui, Menu: Add, Button, gShowTimeoutMenu w150 h30, Set timeout
@@ -61,6 +62,7 @@ Gui, TimeoutApp: Add, Button, gTimeoutSet x180 y5 w40 h25, Set
 SetTimer, CheckActiveWindow, 500
 SetTimer, UpdateTimer, 1000
 SetTimer, CheckMouseMove, 100
+SetTimer, CheckKeyPress, 10
 
 ResetLabels()
 UpdateGui()
@@ -157,7 +159,7 @@ UpdateTimer:
             CurrentTimer := FormatTime(AppList[ActiveExe].Time)
             UpdateGui()
 
-            if (AppIdle > AppTimeout) {
+            if (AppIdle >= AppTimeout) {
                 IsIdle := true
                 Gui, Main: Color, Silver
                 Gui, Main: Show, NoActivate
@@ -179,6 +181,24 @@ CheckMouseMove:
         AppIdle := 0
         IsIdle := false
     }
+    return
+
+CheckKeyPress:
+    Input, key, L1 V, {LShift}{RShift}{LControl}{RControl}{LAlt}{RAlt}{LWin}{RWin}
+    if (ErrorLevel != "Timeout") {
+        AppIdle := 0
+        IsIdle := false
+    }
+
+    return
+
+~LButton::
+~MButton::
+~WheelUp::
+~WheelDown::
+~RButton::
+    AppIdle := 0
+    IsIdle := false
     return
 
 ; Format time in HH:MM:SS
@@ -204,7 +224,7 @@ UpdateGui() {
 ; Show menu
 ShowMenu:
     Gui, Main: +Disabled
-    Gui, Menu: Show, w170 h150
+    Gui, Menu: Show, w170 h220
     return
 
 ResetTimer() {
@@ -213,6 +233,14 @@ ResetTimer() {
         CurrentTimer := FormatTime(AppList[ActiveExe].Time)
         UpdateGui()
     }
+}
+
+ResetAllTimers() {
+    for ExeName, _ in AppList {
+        AppList[ExeName].Time := 0
+    }
+    CurrentTimer := FormatTime(AppList[ActiveExe].Time)
+    UpdateGui()
 }
 
 ; Close menu

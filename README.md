@@ -4,13 +4,17 @@ A simple AutoHotKey timer for you to keep track of multiple app usages.
 
 ## Features
 
-When a tracked app is active, a timer will start counting. If you switch between different apps, the timer will resume for the corresponding app.
+- When a tracked app is active, a timer will start counting.
+- If you switch between different apps, the timer will resume for the corresponding app.
 
 ![img](./docs/001.png)
 
-If the user moves to a different app, the timer will turn grey and pause counting.
+- If the user moves to a different app, the timer will turn grey and pause counting.
+- If there is no use activity while the app is active, the timer will also pause after a timeout.
 
 ![img](./docs/002.png)
+
+- Timer is saved automatically when you close.
 
 ## History
 
@@ -19,6 +23,12 @@ This app is based on another similar [app created by Neil Cicierga](https://neil
 The script is for AutoHotKey (AHK) version 1.1. The script was created with [Claude 3.7 Sonnet](https://claude.ai) (free). I manually tweaked some logic after the initial code was generated. I am not familiar with AHK but there is [documentation (v1.1)](https://www.autohotkey.com/docs/v1/) available, so it's not difficult to figure things out if AI is unable to generate the necessary code.
 
 ## Usage
+
+### Reset app timer
+
+You can go to `Menu > Reset current timer` to reset the time for the current app being tracked. Note: You cannot undo this action.
+
+You can go to `Menu > Reset ALL timers` to reset the time for all apps being tracked. Note: You cannot undo this action.
 
 ### Track a new app
 
@@ -38,9 +48,11 @@ To remove an application from your tracked list, go to `Menu > Remove App`. Clic
 
 ![img](./docs/005.png)
 
-### Reset current tracked app's timer
+### Set timeout
 
-You can go to `Menu > Reset current timer` to reset the time for the current app being tracked. Note: You cannot undo this action.
+To change the idle timeout, go to `Menu > Set timeout`. Input the value in seconds, then click `Set`.
+
+![img](./docs/006.png)
 
 ## Development
 
