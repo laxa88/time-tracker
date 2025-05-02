@@ -4,17 +4,18 @@ SetBatchLines, -1
 DetectHiddenWindows, On
 
 ; Initialize global variables
+global AppTimeout := 5
 global AppList := {}
 global CurrentTimer := "--:--:--"
 global ActiveExe := ""
 global TimerRunning := false
-global DataFile := A_ScriptDir . "\TrackerData.ini"
+global DataFile := A_ScriptDir . "\time-tracker-data.ini"
 
 ; Load saved data if exists
 LoadSavedData()
 
 ; Create main GUI
-Gui, Main: New, +AlwaysOnTop + ToolWindow + Resize, Tracker
+Gui, Main: New, +AlwaysOnTop + ToolWindow, Tracker
 Gui, Main: Font, s18, Consolas
 Gui, Main: Add, Text, vTimerLabel x5 y5 w120 h30, Time: %CurrentTimer%
 Gui, Main: Font, s10
@@ -25,8 +26,9 @@ Gui, Main: Show, w260 h40 NoActivate
 ; Create menu GUI - added AlwaysOnTop flag
 Gui, Menu: New, +AlwaysOnTop + ToolWindow + Owner, Tracker Menu
 Gui, Menu: Add, Button, gResetTimer w150 h30, Reset current timer
-Gui, Menu: Add, Button, gTrackNewApp w150 h30, Track New App
-Gui, Menu: Add, Button, gShowRemoveMenu w150 h30, Remove App
+Gui, Menu: Add, Button, gTrackNewApp w150 h30, Track new app
+Gui, Menu: Add, Button, gShowRemoveMenu w150 h30, Remove tracked app
+Gui, Menu: Add, Button, gShowTimeoutMenu w150 h30, Set timeout
 Gui, Menu: Add, Button, gCloseMenu w150 h30, Close Menu
 
 ; Create app selection GUI
@@ -37,8 +39,8 @@ Gui, SelectApp: Add, Button, gCancelSelection w100 h25, Cancel
 ; Create app name input GUI - added AlwaysOnTop flag
 Gui, NameApp: New, +AlwaysOnTop + ToolWindow + Owner, Name App
 Gui, NameApp: Add, Text, , Enter name for this app:
-    Gui, NameApp: Add, Edit, vAppNameInput w200
-        Gui, NameApp: Add, Button, gSaveAppName w100 h25, OK
+Gui, NameApp: Add, Edit, vAppNameInput w200
+Gui, NameApp: Add, Button, gSaveAppName w100 h25, OK
 Gui, NameApp: Add, Button, gCancelNaming w100 h25, Cancel
 
 ; Create remove app GUI - added AlwaysOnTop flag
@@ -46,6 +48,12 @@ Gui, RemoveApp: New, +AlwaysOnTop + ToolWindow + Owner, Remove App
 Gui, RemoveApp: Add, ListBox, vAppToRemove w200 h150
 Gui, RemoveApp: Add, Button, gRemoveSelectedApp w100 h25, Remove
 Gui, RemoveApp: Add, Button, gCancelRemoval w100 h25, Cancel
+
+; GUI for setting timeout
+Gui, TimeoutApp: New, +AlwaysOnTop + ToolWindow + Owner, Set Timeout App
+Gui, TimeoutApp: Add, Text, x5 y10, Set idle timeout (seconds):
+Gui, TimeoutApp: Add, Edit, vTimeoutInput x140 y7 w30
+Gui, TimeoutApp: Add, Button, gTimeoutSet x180 y5 w40 h25, Set
 
 ; Start the timer loop
 SetTimer, CheckActiveWindow, 500
@@ -59,6 +67,8 @@ return
 ; Function to load saved data
 LoadSavedData() {
     if FileExist(DataFile) {
+        IniRead, AppTimeout, %DataFile%, Timeout, AppTimeout, 5
+
         IniRead, AppCount, %DataFile%, General, AppCount, 0
         if (AppCount > 0) {
             loop, %AppCount% {
@@ -85,6 +95,7 @@ SaveData() {
     }
 
     IniWrite, %AppCount%, %DataFile%, General, AppCount
+    IniWrite, %AppTimeout%, %DataFile%, Timeout, AppTimeout
 }
 
 ; Check which window is active
@@ -292,8 +303,8 @@ RemoveSelectedApp:
         SaveData()
     }
 
-    Gui, RemoveApp: Hide
-    Gui, Menu: Show
+    ; Gui, RemoveApp: Hide
+    ; Gui, Menu: Show
     return
 
 ; Cancel removal
@@ -326,6 +337,26 @@ RemoveAppGuiClose:
     Gui, RemoveApp: Hide
     Gui, Main: -Disabled
     Gui, Menu: Show
+    return
+
+TimeoutAppGuiClose:
+    Gui, TimeoutApp: Hide
+    Gui, Main: -Disabled
+    Gui, Menu: Show
+    return
+
+ShowTimeoutMenu:
+    Gui, Menu: Hide
+    Gui, TimeoutApp: Show, w250 h50
+    GuiControl, TimeoutApp: , TimeoutInput, %AppTimeout%
+    return
+
+TimeoutSet:
+    Gui, TimeoutApp: Submit, NoHide
+    AppTimeout := TimeoutInput + 0 ; force to number
+    Gui, TimeoutApp: Hide
+    Gui, Menu: Show
+    SaveData()
     return
 
 ; Exit event
