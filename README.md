@@ -22,7 +22,7 @@ Go to the [releases page](https://github.com/laxa88/time-tracker/releases) and d
 
 ## History
 
-This app is based on another similar [app created by Neil Cicierga](https://neilblr.com/post/58757345346) (Note: As of writing, he did a cheeky thing by turning the page black. Click the "Lights" text to show the contents of the page). His app was great but I wanted a different version that suited my use case better.
+This app is based on another similar [app created by Neil Cicierega](https://neilblr.com/post/58757345346) (Note: As of writing, he did a cheeky thing by turning the page black. Click the "Lights" text to show the contents of the page). His app was great but I wanted a different version that suited my use case better.
 
 The script is for AutoHotKey (AHK) version 1.1. The script was created with [Claude 3.7 Sonnet](https://claude.ai) (free). I manually tweaked some logic after the initial code was generated. I am not familiar with AHK but there is [documentation (v1.1)](https://www.autohotkey.com/docs/v1/) available, so it's not difficult to figure things out if AI is unable to generate the necessary code.
 
