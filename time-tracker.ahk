@@ -204,7 +204,7 @@ UpdateGui() {
 ; Show menu
 ShowMenu:
     Gui, Main: +Disabled
-    Gui, Menu: Show, w170 h150
+    Gui, Menu: Show, w170 h185
     return
 
 ResetTimer() {
