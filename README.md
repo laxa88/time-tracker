@@ -2,6 +2,10 @@
 
 A simple AutoHotKey timer for you to keep track of multiple app usages.
 
+## Download
+
+Go to the [releases page](https://github.com/laxa88/time-tracker/releases) and download the `time-tracker.exe` file. Note: It's only for Windows.
+
 ## Features
 
 - When a tracked app is active, a timer will start counting.
