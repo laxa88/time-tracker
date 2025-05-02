@@ -61,6 +61,7 @@ Gui, TimeoutApp: Add, Button, gTimeoutSet x180 y5 w40 h25, Set
 SetTimer, CheckActiveWindow, 500
 SetTimer, UpdateTimer, 1000
 SetTimer, CheckMouseMove, 100
+SetTimer, CheckKeyPress, 10
 
 ResetLabels()
 UpdateGui()
@@ -179,6 +180,24 @@ CheckMouseMove:
         AppIdle := 0
         IsIdle := false
     }
+    return
+
+CheckKeyPress:
+    Input, key, L1 V, {LShift}{RShift}{LControl}{RControl}{LAlt}{RAlt}{LWin}{RWin}
+    if (ErrorLevel != "Timeout") {
+        AppIdle := 0
+        IsIdle := false
+    }
+
+    return
+
+~LButton::
+~MButton::
+~WheelUp::
+~WheelDown::
+~RButton::
+    AppIdle := 0
+    IsIdle := false
     return
 
 ; Format time in HH:MM:SS
