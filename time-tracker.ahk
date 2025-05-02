@@ -158,7 +158,7 @@ UpdateTimer:
             CurrentTimer := FormatTime(AppList[ActiveExe].Time)
             UpdateGui()
 
-            if (AppIdle > AppTimeout) {
+            if (AppIdle >= AppTimeout) {
                 IsIdle := true
                 Gui, Main: Color, Silver
                 Gui, Main: Show, NoActivate
