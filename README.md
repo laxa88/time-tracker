@@ -2,6 +2,8 @@
 
 A simple AutoHotKey timer for you to keep track of multiple app usages.
 
+![img](./docs/screenshot.jpg)
+
 ## Download
 
 Go to the [releases page](https://github.com/laxa88/time-tracker/releases) and download the `time-tracker.exe` file. Note: It's only for Windows.
@@ -9,12 +11,12 @@ Go to the [releases page](https://github.com/laxa88/time-tracker/releases) and d
 ## Features
 
 - When a tracked app is active, a timer will start counting.
-- If you switch between different apps, the timer will resume for the corresponding app.
+- If you switch between different tracked apps, the timer will resume for the corresponding app.
 
 ![img](./docs/001.png)
 
-- If the user moves to a different app, the timer will turn grey and pause counting.
-- If there is no use activity while the app is active, the timer will also pause after a timeout.
+- If the user switches focus to an untracked app, the timer will turn grey and pause counting.
+- If there is no use activity (mouse movement or clicks or keyboard presses) while the app is active, the timer will also pause after a timeout.
 
 ![img](./docs/002.png)
 
