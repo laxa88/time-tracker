@@ -4,19 +4,20 @@ SetBatchLines, -1
 DetectHiddenWindows, On
 
 ; Initialize global variables
+global AppTimeout := 5
+global AppIdle := 0
+global IsIdle := false
 global AppList := {}
-; global CurrentApp := "Not tracked"
 global CurrentTimer := "--:--:--"
-global ActiveAppID := ""
+global ActiveExe := ""
 global TimerRunning := false
-global DataFile := A_ScriptDir . "\TrackerData.ini"
+global DataFile := A_ScriptDir . "\time-tracker-data.ini"
 
 ; Load saved data if exists
 LoadSavedData()
 
 ; Create main GUI
-Gui, Main: New, +AlwaysOnTop + ToolWindow + Resize, Tracker
-; Gui, Main: Add, Text, vAppNameLabel w280 h20, App: %CurrentApp%
+Gui, Main: New, +AlwaysOnTop + ToolWindow, Tracker
 Gui, Main: Font, s18, Consolas
 Gui, Main: Add, Text, vTimerLabel x5 y5 w120 h30, Time: %CurrentTimer%
 Gui, Main: Font, s10
@@ -27,8 +28,9 @@ Gui, Main: Show, w260 h40 NoActivate
 ; Create menu GUI - added AlwaysOnTop flag
 Gui, Menu: New, +AlwaysOnTop + ToolWindow + Owner, Tracker Menu
 Gui, Menu: Add, Button, gResetTimer w150 h30, Reset current timer
-Gui, Menu: Add, Button, gTrackNewApp w150 h30, Track New App
-Gui, Menu: Add, Button, gShowRemoveMenu w150 h30, Remove App
+Gui, Menu: Add, Button, gTrackNewApp w150 h30, Track new app
+Gui, Menu: Add, Button, gShowRemoveMenu w150 h30, Remove tracked app
+Gui, Menu: Add, Button, gShowTimeoutMenu w150 h30, Set timeout
 Gui, Menu: Add, Button, gCloseMenu w150 h30, Close Menu
 
 ; Create app selection GUI
@@ -39,8 +41,8 @@ Gui, SelectApp: Add, Button, gCancelSelection w100 h25, Cancel
 ; Create app name input GUI - added AlwaysOnTop flag
 Gui, NameApp: New, +AlwaysOnTop + ToolWindow + Owner, Name App
 Gui, NameApp: Add, Text, , Enter name for this app:
-    Gui, NameApp: Add, Edit, vAppNameInput w200
-        Gui, NameApp: Add, Button, gSaveAppName w100 h25, OK
+Gui, NameApp: Add, Edit, vAppNameInput w200
+Gui, NameApp: Add, Button, gSaveAppName w100 h25, OK
 Gui, NameApp: Add, Button, gCancelNaming w100 h25, Cancel
 
 ; Create remove app GUI - added AlwaysOnTop flag
@@ -49,9 +51,16 @@ Gui, RemoveApp: Add, ListBox, vAppToRemove w200 h150
 Gui, RemoveApp: Add, Button, gRemoveSelectedApp w100 h25, Remove
 Gui, RemoveApp: Add, Button, gCancelRemoval w100 h25, Cancel
 
+; GUI for setting timeout
+Gui, TimeoutApp: New, +AlwaysOnTop + ToolWindow + Owner, Set Timeout App
+Gui, TimeoutApp: Add, Text, x5 y10, Set idle timeout (seconds):
+Gui, TimeoutApp: Add, Edit, vTimeoutInput x140 y7 w30
+Gui, TimeoutApp: Add, Button, gTimeoutSet x180 y5 w40 h25, Set
+
 ; Start the timer loop
 SetTimer, CheckActiveWindow, 500
 SetTimer, UpdateTimer, 1000
+SetTimer, CheckMouseMove, 100
 
 ResetLabels()
 UpdateGui()
@@ -61,14 +70,16 @@ return
 ; Function to load saved data
 LoadSavedData() {
     if FileExist(DataFile) {
+        IniRead, AppTimeout, %DataFile%, Timeout, AppTimeout, 5
+
         IniRead, AppCount, %DataFile%, General, AppCount, 0
         if (AppCount > 0) {
             loop, %AppCount% {
-                IniRead, AppID, %DataFile%, Apps, App%A_Index%_ID
+                IniRead, AppExe, %DataFile%, Apps, App%A_Index%_Exe
                 IniRead, AppName, %DataFile%, Apps, App%A_Index%_Name
                 IniRead, AppTime, %DataFile%, Apps, App%A_Index%_Time, 0
 
-                AppList[AppID] := { Name: AppName, Time: AppTime }
+                AppList[AppExe] := { Name: AppName, Time: AppTime }
             }
         }
     }
@@ -79,20 +90,21 @@ SaveData() {
     FileDelete, %DataFile%
 
     AppCount := 0
-    for AppID, AppData in AppList {
+    for AppExe, AppData in AppList {
         AppCount++
-        IniWrite, % AppID, %DataFile%, Apps, App%AppCount%_ID
+        IniWrite, % AppExe, %DataFile%, Apps, App%AppCount%_Exe
         IniWrite, % AppData.Name, %DataFile%, Apps, App%AppCount%_Name
         IniWrite, % AppData.Time, %DataFile%, Apps, App%AppCount%_Time
     }
 
     IniWrite, %AppCount%, %DataFile%, General, AppCount
+    IniWrite, %AppTimeout%, %DataFile%, Timeout, AppTimeout
 }
 
 ; Check which window is active
 CheckActiveWindow:
     WinGet, CurrentWinID, ID, A
-    WinGetTitle, CurrentWinTitle, ahk_id %CurrentWinID%
+    WinGet, CurrentExeName, ProcessName, ahk_id %CurrentWinID%
 
     ; Skip if it's the tracker itself or its submenus
     WinGet, TrackerID, ID, Tracker
@@ -112,17 +124,14 @@ CheckActiveWindow:
     IsMinimized := (MinMax = -1)
 
     ; Update the active app
-    if (AppList.HasKey(CurrentWinID)) {
-        Gui, Main: Show, NoActivate, %CurrentWinTitle%
-        ActiveAppID := CurrentWinID
-        ; CurrentApp := AppList[CurrentWinID].Name
-        CurrentTimer := FormatTime(AppList[CurrentWinID].Time)
+    if (AppList.HasKey(CurrentExeName)) {
+        Gui, Main: Show, NoActivate, %CurrentExeName%
+        ActiveExe := CurrentExeName
+        CurrentTimer := FormatTime(AppList[CurrentExeName].Time)
         TimerRunning := true
 
-        if (!IsMinimized) {
+        if (!IsIdle && !IsMinimized) {
             Gui, Main: Color, Green
-        } else {
-            Gui, Main: Color, Red
         }
     }
 
@@ -133,21 +142,42 @@ CheckActiveWindow:
 
 ; Update the timer
 UpdateTimer:
-    if (TimerRunning && ActiveAppID != "") {
+    if (!IsIdle && TimerRunning && ActiveExe != "") {
         ; Make sure the app is still active and not minimized
         WinGet, CurrentActiveID, ID, A
         WinGet, MinMax, MinMax, ahk_id %CurrentActiveID%
+        WinGet, CurrentExeName, ProcessName, ahk_id %CurrentActiveID%
+
         IsMinimized := (MinMax = -1)
 
-        if (CurrentActiveID = ActiveAppID && !IsMinimized) {
+        if (CurrentExeName = ActiveExe && !IsMinimized) {
             ; Increment timer for active app
-            AppList[ActiveAppID].Time += 1
-            CurrentTimer := FormatTime(AppList[ActiveAppID].Time)
+            AppList[ActiveExe].Time += 1
+            AppIdle += 1
+            CurrentTimer := FormatTime(AppList[ActiveExe].Time)
             UpdateGui()
+
+            if (AppIdle > AppTimeout) {
+                IsIdle := true
+                Gui, Main: Color, Silver
+                Gui, Main: Show, NoActivate
+            }
         } else {
             ; The window is no longer active, pause the timer
             TimerRunning := false
         }
+    }
+    return
+
+CheckMouseMove:
+    MouseGetPos, xNow, yNow
+    if (xNow != xLast || yNow != yLast) {
+        ; ToolTip, Mouse moved to: %xNow%, %yNow% ; for debugging
+        xLast := xNow
+        yLast := yNow
+
+        AppIdle := 0
+        IsIdle := false
     }
     return
 
@@ -162,14 +192,12 @@ FormatTime(Seconds) {
 ResetLabels() {
     Gui, Main: Color, Silver
     Gui, Main: Show, NoActivate
-    ActiveAppID := ""
-    ; CurrentApp := "[untracked] " . CurrentWinTitle
+    ActiveExe := ""
     CurrentTimer := "--:--:--"
     TimerRunning := false
 }
 
 UpdateGui() {
-    ; GuiControl, Main:, AppNameLabel, App: %CurrentApp%
     GuiControl, Main:, TimerLabel, %CurrentTimer%
 }
 
@@ -180,9 +208,9 @@ ShowMenu:
     return
 
 ResetTimer() {
-    if (AppList.HasKey(ActiveAppID)) {
-        AppList[ActiveAppID].Time := 0
-        CurrentTimer := FormatTime(AppList[CurrentWinID].Time)
+    if (AppList.HasKey(ActiveExe)) {
+        AppList[ActiveExe].Time := 0
+        CurrentTimer := FormatTime(AppList[ActiveExe].Time)
         UpdateGui()
     }
 }
@@ -207,16 +235,17 @@ WaitForWindowSelection:
     if GetKeyState("LButton", "P") {
         ; Store current active window
         WinGet, PreviousActiveWindow, ID, A
+        WinGet, PreviousExeName, ProcessName, ahk_id %PreviousActiveWindow%
 
         ; Wait for new window to activate after click
         Sleep, 300  ; Short delay to allow window activation
 
         ; Get newly activated window
         WinGet, SelectedWindowID, ID, A
-        WinGetTitle, WindowTitle, ahk_id %SelectedWindowID%
+        WinGet, SelectedExeName, ProcessName, ahk_id %SelectedWindowID%
 
         ; If active window changed and is not one of our GUIs
-        if (SelectedWindowID != PreviousActiveWindow) {
+        if (SelectedExeName != PreviousExeName) {
             ; Skip if it's one of our GUIs
             WinGet, TrackerID, ID, Tracker
             WinGet, MenuID, ID, Tracker Menu
@@ -230,7 +259,7 @@ WaitForWindowSelection:
                 Gui, SelectApp: Hide
 
                 ; Show input dialog for app name
-                GuiControl, NameApp:, AppNameInput, %WindowTitle%
+                GuiControl, NameApp:, AppNameInput, %SelectedExeName%
                 Gui, NameApp: Show, w220 h120
             }
         }
@@ -250,7 +279,7 @@ SaveAppName:
     Gui, NameApp: Hide
 
     ; Add app to tracking list
-    AppList[SelectedWindowID] := { Name: AppNameInput, Time: 0 }
+    AppList[SelectedExeName] := { Name: AppNameInput, Time: 0 }
 
     ; Save data
     SaveData()
@@ -270,7 +299,7 @@ ShowRemoveMenu:
     ; Clear listbox
     GuiControl, RemoveApp:, AppToRemove, |
         ; Populate listbox with tracked apps
-        for AppID, AppData in AppList {
+        for _ExeName, AppData in AppList {
             GuiControl, RemoveApp:, AppToRemove, % AppData.Name
             }
             Gui, Menu: Hide
@@ -283,9 +312,9 @@ RemoveSelectedApp:
 
     ; Find app ID by name
     if (AppToRemove) {
-        for AppID, AppData in AppList {
+        for ExeName, AppData in AppList {
             if (AppData.Name = AppToRemove) {
-                AppList.Delete(AppID)
+                AppList.Delete(ExeName)
                 break
             }
         }
@@ -294,8 +323,8 @@ RemoveSelectedApp:
         SaveData()
     }
 
-    Gui, RemoveApp: Hide
-    Gui, Menu: Show
+    ; Gui, RemoveApp: Hide
+    ; Gui, Menu: Show
     return
 
 ; Cancel removal
@@ -328,6 +357,26 @@ RemoveAppGuiClose:
     Gui, RemoveApp: Hide
     Gui, Main: -Disabled
     Gui, Menu: Show
+    return
+
+TimeoutAppGuiClose:
+    Gui, TimeoutApp: Hide
+    Gui, Main: -Disabled
+    Gui, Menu: Show
+    return
+
+ShowTimeoutMenu:
+    Gui, Menu: Hide
+    Gui, TimeoutApp: Show, w250 h50
+    GuiControl, TimeoutApp: , TimeoutInput, %AppTimeout%
+    return
+
+TimeoutSet:
+    Gui, TimeoutApp: Submit, NoHide
+    AppTimeout := TimeoutInput + 0 ; force to number
+    Gui, TimeoutApp: Hide
+    Gui, Menu: Show
+    SaveData()
     return
 
 ; Exit event
