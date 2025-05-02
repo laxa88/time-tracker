@@ -24,9 +24,11 @@ The script is for AutoHotKey (AHK) version 1.1. The script was created with [Cla
 
 ## Usage
 
-### Reset current tracked app's timer
+### Reset app timer
 
 You can go to `Menu > Reset current timer` to reset the time for the current app being tracked. Note: You cannot undo this action.
+
+You can go to `Menu > Reset ALL timers` to reset the time for all apps being tracked. Note: You cannot undo this action.
 
 ### Track a new app
 

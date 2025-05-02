@@ -28,6 +28,7 @@ Gui, Main: Show, w260 h40 NoActivate
 ; Create menu GUI - added AlwaysOnTop flag
 Gui, Menu: New, +AlwaysOnTop + ToolWindow + Owner, Tracker Menu
 Gui, Menu: Add, Button, gResetTimer w150 h30, Reset current timer
+Gui, Menu: Add, Button, gResetAllTimers w150 h30, Reset ALL timers
 Gui, Menu: Add, Button, gTrackNewApp w150 h30, Track new app
 Gui, Menu: Add, Button, gShowRemoveMenu w150 h30, Remove tracked app
 Gui, Menu: Add, Button, gShowTimeoutMenu w150 h30, Set timeout
@@ -223,7 +224,7 @@ UpdateGui() {
 ; Show menu
 ShowMenu:
     Gui, Main: +Disabled
-    Gui, Menu: Show, w170 h185
+    Gui, Menu: Show, w170 h220
     return
 
 ResetTimer() {
@@ -232,6 +233,14 @@ ResetTimer() {
         CurrentTimer := FormatTime(AppList[ActiveExe].Time)
         UpdateGui()
     }
+}
+
+ResetAllTimers() {
+    for ExeName, _ in AppList {
+        AppList[ExeName].Time := 0
+    }
+    CurrentTimer := FormatTime(AppList[ActiveExe].Time)
+    UpdateGui()
 }
 
 ; Close menu
