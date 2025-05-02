@@ -1,5 +1,6 @@
 #SingleInstance Force
 #Persistent
+#NoTrayIcon
 SetBatchLines, -1
 DetectHiddenWindows, On
 
@@ -17,13 +18,20 @@ global DataFile := A_ScriptDir . "\time-tracker-data.ini"
 LoadSavedData()
 
 ; Create main GUI
-Gui, Main: New, +AlwaysOnTop + ToolWindow, Tracker
+Gui, Main: New, +AlwaysOnTop -MinimizeBox, Tracker
 Gui, Main: Font, s18, Consolas
 Gui, Main: Add, Text, vTimerLabel x5 y5 w120 h30, Time: %CurrentTimer%
 Gui, Main: Font, s10
 Gui, Main: Add, Button, gShowMenu x200 y5 w50 h25, Menu
-; Gui, Main: Add, Button, gResetTimer x130 y5 w50 h25, Reset
 Gui, Main: Show, w260 h40 NoActivate
+
+; Add icon
+IconFilePath := A_ScriptDir . "\laksapedia-logo.ico"
+hIcon := DllCall("LoadImage", uint, 0, str, IconFilePath, uint, 1, int, 0, int, 0, uint, 0x10)  ; Type, Width, Height, Flags
+Gui, Main: Show
+SendMessage, 0x80, 0, hIcon,, A  ; WM_SETICON, ICON_SMALL
+SendMessage, 0x80, 1, hIcon,, A  ; WM_SETICON, ICON_BIG
+; Menu, Tray, Icon, %IconFilePath%
 
 ; Create menu GUI - added AlwaysOnTop flag
 Gui, Menu: New, +AlwaysOnTop + ToolWindow + Owner, Tracker Menu
