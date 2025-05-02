@@ -1,5 +1,6 @@
 #SingleInstance Force
 #Persistent
+#NoTrayIcon
 SetBatchLines, -1
 DetectHiddenWindows, On
 
