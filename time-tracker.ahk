@@ -261,7 +261,7 @@ CloseMenu:
 TrackNewApp:
     Gui, Menu: Hide
     Gui, SelectApp: Show, w400 h100
-    SetTimer, WaitForWindowSelection, 100
+    SetTimer, WaitForWindowSelection, 10
     return
 
 ; Wait for window selection
