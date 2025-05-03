@@ -20,10 +20,10 @@ LoadSavedData()
 ; Create main GUI
 Gui, Main: New, +AlwaysOnTop -MinimizeBox, Tracker
 Gui, Main: Font, s18, Consolas
-Gui, Main: Add, Text, vTimerLabel x5 y5 w120 h30, Time: %CurrentTimer%
+Gui, Main: Add, Text, vTimerLabel x5 y6 w110 h30, Time: %CurrentTimer%
 Gui, Main: Font, s10
-Gui, Main: Add, Button, gShowMenu x200 y5 w50 h25, Menu
-Gui, Main: Show, w260 h40 NoActivate
+Gui, Main: Add, Button, gShowMenu x122 y8 w50 h25, Menu
+Gui, Main: Show, w180 h40 NoActivate
 
 ; Add icon
 hIcon := LoadPicture("laksapedia-logo.ico", "Icon1 w32 h32", imgtype)
