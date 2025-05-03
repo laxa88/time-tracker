@@ -367,6 +367,20 @@ CancelRemoval:
     Gui, Menu: Show
     return
 
+ShowTimeoutMenu:
+    Gui, Menu: Hide
+    Gui, TimeoutApp: Show, w250 h50
+    GuiControl, TimeoutApp: , TimeoutInput, %AppTimeout%
+    return
+
+TimeoutSet:
+    Gui, TimeoutApp: Submit, NoHide
+    AppTimeout := TimeoutInput + 0 ; force to number
+    Gui, TimeoutApp: Hide
+    Gui, Menu: Show
+    SaveData()
+    return
+
 ; Add handlers for X button closes on all GUIs
 MenuGuiClose:
     Gui, Menu: Hide
@@ -397,20 +411,6 @@ TimeoutAppGuiClose:
     Gui, TimeoutApp: Hide
     Gui, Main: -Disabled
     Gui, Menu: Show
-    return
-
-ShowTimeoutMenu:
-    Gui, Menu: Hide
-    Gui, TimeoutApp: Show, w250 h50
-    GuiControl, TimeoutApp: , TimeoutInput, %AppTimeout%
-    return
-
-TimeoutSet:
-    Gui, TimeoutApp: Submit, NoHide
-    AppTimeout := TimeoutInput + 0 ; force to number
-    Gui, TimeoutApp: Hide
-    Gui, Menu: Show
-    SaveData()
     return
 
 ; Exit event
