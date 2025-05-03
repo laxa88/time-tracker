@@ -18,7 +18,7 @@ global DataFile := A_ScriptDir . "\time-tracker-data.ini"
 LoadSavedData()
 
 ; Create main GUI
-Gui, Main: New, +AlwaysOnTop -MinimizeBox, Tracker
+Gui, Main: New, +AlwaysOnTop -MinimizeBox, Time Tracker
 Gui, Main: Font, s18, Consolas
 Gui, Main: Add, Text, vTimerLabel x5 y6 w110 h30, Time: %CurrentTimer%
 Gui, Main: Font, s10
@@ -33,7 +33,7 @@ SendMessage, 0x80, 1, hIcon,, A  ; WM_SETICON, ICON_BIG
 ; Menu, Tray, Icon, %IconFilePath% ; if #NoTrayIcon flag is off, we can customize the icon here
 
 ; Create menu GUI - added AlwaysOnTop flag
-Gui, Menu: New, +AlwaysOnTop + ToolWindow + Owner, Tracker Menu
+Gui, Menu: New, +AlwaysOnTop + ToolWindow + Owner, Menu
 Gui, Menu: Add, Button, gResetTimer w150 h30, Reset current timer
 Gui, Menu: Add, Button, gResetAllTimers w150 h30, Reset ALL timers
 Gui, Menu: Add, Button, gTrackNewApp w150 h30, Track new app
@@ -60,7 +60,7 @@ Gui, RemoveApp: Add, Button, gRemoveSelectedApp w100 h25, Remove
 Gui, RemoveApp: Add, Button, gCancelRemoval w100 h25, Cancel
 
 ; GUI for setting timeout
-Gui, TimeoutApp: New, +AlwaysOnTop + ToolWindow + Owner, Set Timeout App
+Gui, TimeoutApp: New, +AlwaysOnTop + ToolWindow + Owner, Set Timeout
 Gui, TimeoutApp: Add, Text, x5 y10, Set idle timeout (seconds):
 Gui, TimeoutApp: Add, Edit, vTimeoutInput x140 y7 w30
 Gui, TimeoutApp: Add, Button, gTimeoutSet x180 y5 w40 h25, Set
