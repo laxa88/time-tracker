@@ -76,7 +76,6 @@ UpdateGui()
 
 return
 
-; Function to load saved data
 LoadSavedData() {
     if FileExist(DataFile) {
         IniRead, AppTimeout, %DataFile%, Timeout, AppTimeout, 5
@@ -94,7 +93,6 @@ LoadSavedData() {
     }
 }
 
-; Function to save data
 SaveData() {
     FileDelete, %DataFile%
 
@@ -149,7 +147,6 @@ CheckActiveWindow:
     UpdateGui()
     return
 
-; Update the timer
 UpdateTimer:
     if (!IsIdle && TimerRunning && ActiveExe != "") {
         ; Make sure the app is still active and not minimized
@@ -228,7 +225,6 @@ UpdateGui() {
     GuiControl, Main:, TimerLabel, %CurrentTimer%
 }
 
-; Show menu
 ShowMenu:
     Gui, Main: +Disabled
     Gui, Menu: Show, w170 h220
@@ -250,21 +246,18 @@ ResetAllTimers() {
     UpdateGui()
 }
 
-; Close menu
 CloseMenu:
     Gui, Menu: Hide
     Gui, Main: -Disabled
     Gui, Main: Show
     return
 
-; Track new app
 TrackNewApp:
     Gui, Menu: Hide
     Gui, SelectApp: Show, w400 h100
     SetTimer, WaitForWindowSelection, 10
     return
 
-; Wait for window selection
 WaitForWindowSelection:
     ; Check for mouse click
     if GetKeyState("LButton", "P") {
@@ -301,14 +294,12 @@ WaitForWindowSelection:
     }
     return
 
-; Cancel selection
 CancelSelection:
     SetTimer, WaitForWindowSelection, Off
     Gui, SelectApp: Hide
     Gui, Menu: Show
     return
 
-; Save app name
 SaveAppName:
     Gui, NameApp: Submit
     Gui, NameApp: Hide
@@ -323,13 +314,11 @@ SaveAppName:
     Gui, Menu: Show
     return
 
-; Cancel naming
 CancelNaming:
     Gui, NameApp: Hide
     Gui, Menu: Show
     return
 
-; Show remove menu
 ShowRemoveMenu() {
     ; Clear listbox
     GuiControl, RemoveApp:, AppToRemove, |
@@ -340,8 +329,6 @@ ShowRemoveMenu() {
         Gui, Menu: Hide
     Gui, RemoveApp: Show, w220 h220
 }
-
-; Remove selected app
 RemoveSelectedApp:
     Gui, RemoveApp: Submit, NoHide
 
@@ -361,7 +348,6 @@ RemoveSelectedApp:
     ShowRemoveMenu()
     return
 
-; Cancel removal
 CancelRemoval:
     Gui, RemoveApp: Hide
     Gui, Menu: Show
