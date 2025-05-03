@@ -26,12 +26,11 @@ Gui, Main: Add, Button, gShowMenu x200 y5 w50 h25, Menu
 Gui, Main: Show, w260 h40 NoActivate
 
 ; Add icon
-IconFilePath := A_ScriptDir . "\laksapedia-logo.ico"
-hIcon := DllCall("LoadImage", uint, 0, str, IconFilePath, uint, 1, int, 0, int, 0, uint, 0x10)  ; Type, Width, Height, Flags
+hIcon := LoadPicture("laksapedia-logo.ico", "Icon1 w32 h32", imgtype)
 Gui, Main: Show
 SendMessage, 0x80, 0, hIcon,, A  ; WM_SETICON, ICON_SMALL
 SendMessage, 0x80, 1, hIcon,, A  ; WM_SETICON, ICON_BIG
-; Menu, Tray, Icon, %IconFilePath%
+; Menu, Tray, Icon, %IconFilePath% ; if #NoTrayIcon flag is off, we can customize the icon here
 
 ; Create menu GUI - added AlwaysOnTop flag
 Gui, Menu: New, +AlwaysOnTop + ToolWindow + Owner, Tracker Menu
