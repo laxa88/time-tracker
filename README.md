@@ -4,6 +4,14 @@ A simple AutoHotKey timer for you to keep track of multiple app usages.
 
 ![img](./docs/screenshot.jpg)
 
+## History
+
+This app is based on another similar [app created by Neil Cicierega](https://neilblr.com/post/58757345346) (Note: As of writing, he did a cheeky thing by turning the page black. Click the "Lights" text to show the contents of the page). His app was great but I wanted a different version that suited my use case better. Neil's version allows to track up to 3 different apps, but they all share the same timer. My version allows to track any number of apps, and each app has their own timer.
+
+The script is for AutoHotKey (AHK) version 1.1. The code was created with [Claude 3.7 Sonnet](https://claude.ai) (free). I manually tweaked some logic after the initial code was generated. I am not familiar with AHK but there is [documentation (v1.1)](https://www.autohotkey.com/docs/v1/) available, so it's not difficult to figure things out if AI is unable to generate the necessary code.
+
+Accompanying blog post here: https://laksapedia.com/blog/2025-05-03-time-tracker
+
 ## Download
 
 Go to the [releases page](https://github.com/laxa88/time-tracker/releases) and download the `time-tracker.exe` file. Note: It's only for Windows.
@@ -21,12 +29,6 @@ Go to the [releases page](https://github.com/laxa88/time-tracker/releases) and d
 ![img](./docs/002.png)
 
 - Timer is saved automatically when you close.
-
-## History
-
-This app is based on another similar [app created by Neil Cicierega](https://neilblr.com/post/58757345346) (Note: As of writing, he did a cheeky thing by turning the page black. Click the "Lights" text to show the contents of the page). His app was great but I wanted a different version that suited my use case better.
-
-The script is for AutoHotKey (AHK) version 1.1. The script was created with [Claude 3.7 Sonnet](https://claude.ai) (free). I manually tweaked some logic after the initial code was generated. I am not familiar with AHK but there is [documentation (v1.1)](https://www.autohotkey.com/docs/v1/) available, so it's not difficult to figure things out if AI is unable to generate the necessary code.
 
 ## Usage
 
